@@ -20,8 +20,9 @@ description: 数学专业书籍（教材、专著）中英互译全流程工具�
 2. 公式一律使用LaTeX：行内 `$...$`，独立 `$$...$$`。
 3. 美元金额必须转义为 `\$`，避免与LaTeX分隔符冲突。
 4. 脚注标记 `$^n$` 与后续公式之间必须加空格，避免 `$$` 被误解析为块数学。
-5. 每章译完立即运行 `scripts/check_quality.py <文件路径>`，即时修复问题。
-6. 翻译记忆库复用：用 `scripts/translation_memory.py build` 从已译文档构建记忆库，用 `scripts/translation_memory.py match` 匹配相似句对。
+5. **图形一致性规范**：原文中的数轴、坐标系、几何图形等不能用简单的文字代码块（如 `0 1 2 3 4`）表示，必须转换为SVG格式，保持与原书一致的视觉效果。SVG图形应包含：轴线、刻度线、标签文字、标记点等元素。翻译完成后运行 `scripts/convert_figures_to_svg.py <译文目录>` 批量检测并转换简单图形为SVG。
+6. 每章译完立即运行 `scripts/check_quality.py <文件路径>`，即时修复问题。
+7. 翻译记忆库复用：用 `scripts/translation_memory.py build` 从已译文档构建记忆库，用 `scripts/translation_memory.py match` 匹配相似句对。
 
 ### 阶段三：部分复核
 
@@ -76,6 +77,21 @@ python protect_formulas.py extract input.md       # 提取公式，输出 input.
 python protect_formulas.py restore input.md       # 回填公式
 ```
 
+### scripts/convert_figures_to_svg.py（新增）
+数学图形SVG转换工具，自动检测译文中的简单图形代码块（数轴、坐标系等）并转换为SVG格式，保证与原书视觉一致。
+支持类型：
+- 单行整数数轴（如 `0 1 2 3 4`）
+- 两行数轴（整数+分数标签）
+- 带标记点的数轴（如标记1/4、5/4位置）
+
+SVG图形包含：水平轴线、刻度线（整数刻度更长更粗）、数字标签（serif字体居中）、标记点（黑色圆点）、分数标签（加粗显示）。
+
+```bash
+python convert_figures_to_svg.py                  # 转换当前目录所有md文件
+python convert_figures_to_svg.py 译文/             # 转换指定目录的md文件
+python convert_figures_to_svg.py file.md           # 转换单个文件
+```
+
 ### scripts/translation_memory.py（新增）
 翻译记忆库工具。
 ```bash
@@ -124,7 +140,8 @@ python package.py 译文/*.md --zip                  # 仅打包zip
 1. **不要依赖Read工具判断PDF结束**：Read工具有token上限，大PDF必须用extract_pdf.py确认总页数。
 2. **美元符号必须转义**：文中的美元金额一律用 `\$`，否则会被解析为LaTeX公式开始。
 3. **脚注与公式间加空格**：`$^1$$x$` 会被误解析，必须写为 `$^1$ $x$`。
-4. **每章即时检查**：不要等到全部译完再复核，每章译完跑一次check_quality.py。
-5. **术语表前置**：翻译开始前确认核心术语译法，避免中途调整导致全局替换。
-6. **页码锚点回查**：extract_pdf.py生成的page_map.json记录每段对应原书页码，便于校对时回查原文。
-7. **翻译记忆库复用**：每完成一部分就更新记忆库，后续章节翻译时自动匹配相似句对，提高一致性。
+4. **图形必须用SVG**：原文中的数轴、坐标系、几何图形等不能用简单文字代码块表示，必须转换为SVG格式，保持与原书一致的视觉效果。翻译完成后运行convert_figures_to_svg.py批量转换。
+5. **每章即时检查**：不要等到全部译完再复核，每章译完跑一次check_quality.py。
+6. **术语表前置**：翻译开始前确认核心术语译法，避免中途调整导致全局替换。
+7. **页码锚点回查**：extract_pdf.py生成的page_map.json记录每段对应原书页码，便于校对时回查原文。
+8. **翻译记忆库复用**：每完成一部分就更新记忆库，后续章节翻译时自动匹配相似句对，提高一致性。
